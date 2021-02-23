@@ -3,7 +3,7 @@ const UserModel = require("./schema");
 const passport = require("passport");
 
 //*from auth Tools
-const { authenticate } = require("../auth/tools");
+const { authenticate, verifyJWT } = require("../auth/tools");
 //*from auth Middlewares
 const { authorize } = require("../auth/middleware");
 
@@ -26,19 +26,31 @@ usersRouter.post("/login", async (req, res, next) => {
     //CHECK CREDENTIALS
     const { username, password } = req.body;
     const user = await UserModel.findByCredentials(username, password);
-    //GENERATE TOKEN
-    const tokens = await authenticate(user);
-    //SEND BACK TOKEN
 
-    await res.status(200).send({ tokens });
-    console.log("good boy ;)");
+    if (!author) {
+      res.status(404).send("No user found");
+    } else {
+      //GENERATE TOKEN
+      const tokens = await authenticate(user);
+      res.cookie("accessToken", tokens.access, {
+        httpOnly: true,
+        path: "/authors/refreshToken",
+      });
+      res.cookie("refreshToken", tokens.refresh, {
+        httpOnly: true,
+        path: "/authors/refreshToken",
+      });
+
+      //SEND BACK TOKEN
+      await res.status(200).send({ tokens, message: "nice!" });
+    }
   } catch (error) {
     console.log(error);
     next(error);
   }
 });
 
-usersRouter.get("/", async (req, res, next) => {
+usersRouter.get("/", authorize, async (req, res, next) => {
   try {
     const users = await UserModel.find();
     res.send(users);

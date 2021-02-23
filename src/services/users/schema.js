@@ -10,7 +10,7 @@ const UserSchema = new Schema(
     password: String,
     googleId: String,
     spotify: String,
-    // refreshTokens: [{ token: String }],
+    refreshTokens: [{ token: String }],
   },
 
   { timestamps: true }

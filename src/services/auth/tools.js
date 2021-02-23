@@ -4,11 +4,13 @@ const User = require("../users/schema");
 const authenticate = async user => {
   try {
     const AccessToken = await generateJWT({ _id: user._id });
-    // const newRefreshToken = await generateRefreshJWT({_id: user._id})
+    const newRefreshToken = await generateRefreshJWT({ _id: user._id });
+    user.refreshTokens.push({ token: newRefreshToken });
+
     // user.refreshTokens = user.refreshTokens.concat({token: nrefreshToken})
     await user.save();
 
-    return { token: newAccessToken };
+    return { token: newAccessToken, refresh: newRefreshToken };
   } catch (error) {
     console.log(error);
     throw new Error(error);
